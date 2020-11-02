@@ -1,0 +1,3 @@
+This file exists to initialise the folder link_data for storage of links.
+Files will be stored with the wikipedia article title ase the name
+The contents will be a list of links in the article seperated by "\n"
