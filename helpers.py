@@ -1,10 +1,16 @@
 from bs4 import BeautifulSoup
 import wikipedia as wiki
+from pathlib import Path
 import re
 import time
 
+
 def get_page(query):
     search = wiki.search(query)
+    if search == []:
+        print(f"*Error gettin page: {query}*")
+        print("Check your spelling, and if the page exists.")
+        return None
     try:
         page = wiki.WikipediaPage(search[0])
     except wiki.exceptions.DisambiguationError:
@@ -18,7 +24,7 @@ def get_links(page_name):
     # disambiguation
     try:
         page = wiki.WikipediaPage(page_name)
-        return parse_links(page)
+        return parse_links1(page)
         #return wiki.WikipediaPage(page_name).links
     except wiki.exceptions.DisambiguationError as de:
         return de.options
@@ -27,7 +33,7 @@ def get_links(page_name):
     pass
 
 
-def get_links2(page_name):
+def get_links1(page_name):
     # disambiguation
     try:
         return wiki.WikipediaPage(page_name).links
@@ -38,15 +44,75 @@ def get_links2(page_name):
     pass
 
 
-def timelen(page):
+def get_links2(page_name):
+    try:
+        page = wiki.WikipediaPage(page_name)
+        if is_stored(page_name):
+            return read_links(page_name)
+        else:
+            links =parse_links(page)
+            save_links(page_name, links)
+            return links
+        #return wiki.WikipediaPage(page_name).links
+    except wiki.exceptions.DisambiguationError as de:
+        return de.options
+    except wiki.exceptions.PageError:
+        return None
+    pass
+
+def get_links3(page_name):
+    # disambiguation
+    try:
+        page = wiki.WikipediaPage(page_name)
+        if is_stored(page_name):
+            return read_links(page_name)
+        else:
+            links = parse_links1(page)
+            save_links(page_name, links)
+            return links
+        #return wiki.WikipediaPage(page_name).links
+    except wiki.exceptions.DisambiguationError as de:
+        return de.options
+    except wiki.exceptions.PageError:
+        return None
+    pass
+
+
+def read_links(title):
+    with open(f"link_data/{title}", "r") as f:
+        read_data = f.read()
+        return read_data.split("\n")[:-1]
+
+
+def save_links(title, links):
+    with open(f"link_data/{title}", "w") as f:
+        for link in links:
+            f.write(link + "\n")
+        return True
+
+
+def timelen(page_name):
     tic = time.perf_counter()
-    print(len(get_links(page)))
+    print(len(get_links(page_name)))
     toc = time.perf_counter()
     print(f"BS Found links in {toc - tic:0.4f} seconds")
     tic1 = time.perf_counter()
-    print(len(get_links2(page)))
+    print(len(get_links1(page_name)))
     toc1 = time.perf_counter()
     print(f"Wiki Found links in {toc1 - tic1:0.4f} seconds")
+    tic2 = time.perf_counter()
+    print(len(get_links2(page_name)))
+    toc2 = time.perf_counter()
+    print(f"Wiki Found links in {toc2 - tic2:0.4f} seconds")
+    tic3 = time.perf_counter()
+    print(len(get_links3(page_name)))
+    toc3 = time.perf_counter()
+    print(f"Wiki Found links in {toc3 - tic3:0.4f} seconds")
+
+
+def is_stored(title):
+    return Path(f"link_data/{title}").is_file()
+
 
 def is_disamb(page_name):
     try:
@@ -78,8 +144,6 @@ def parse_links(page):
     # switch case dict
     # ref_links = {0:[name="div", attrs={"class": "reflist" }] 
 
-
-
     main_str = str(main_html)
     references_str = str(ref_html)
     references_idex = main_str.find(references_str)
@@ -89,7 +153,44 @@ def parse_links(page):
     all_links = content_soup.find_all(
         name="a", attrs={"class": None, "title": re.compile(".")})  # results set
     return get_titles(all_links)
-    
+
+
+def parse_links1(page):
+    main_html = BeautifulSoup(page.html(), "html.parser")
+    args = [
+        ["div", {"class": "reflist"}],
+        ["div", {"class": "mw-references-wrap"}],
+        ["span", {"id": "References"}],
+        ["span", {"id": "Sources"}],
+        ["span", {"id": "External_links"}],
+        ["div", {"class": "navbox"}],
+        ["table", {"id": "disambigbox"}],
+        ["table", {"id": "setindexbox"}],
+        ]
+    args_opt = 0
+    ref_html = main_html.find_all(name=args[args_opt][0], attrs=args[args_opt][1])
+    #print(ref_html)
+    while ref_html == [] and args_opt < len(args) -1:
+        args_opt += 1
+        ref_html = main_html.find_all(name=args[args_opt][0], attrs=args[args_opt][1])
+
+    if ref_html == []:
+        print(f"*Wiki format error* {page.title}")
+        return page.links
+    else: 
+        ref_html = ref_html[0]
+
+    main_str = str(main_html)
+    references_str = str(ref_html)
+    references_idex = main_str.find(references_str)
+    page_content = main_str[:references_idex]
+
+    content_soup = BeautifulSoup(page_content, "html.parser")
+    all_links = content_soup.find_all(
+        name="a", attrs={"class": None, "title": re.compile(".")}
+        )  # results set
+    return get_titles(all_links)
+
 
 def get_titles(all_links):
     links = set()
