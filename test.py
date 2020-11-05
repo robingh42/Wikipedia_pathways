@@ -1,24 +1,52 @@
-import helpers
+from helpers import *
+from bs4 import BeautifulSoup
+import wikipedia as wiki
 
-#for i in helpers.get_links("France"):
-    #print(i)
-    #print(len(helpers.get_links(i)))
+def test1():
+    page = get_page(wiki.random())
+ 
 
-def read_links(title):
-    with open(f"link_data/{title}", "r") as f:
-        read_data = f.read()
-        return read_data.split("\n")[:-1]
+    print(page.title)
 
-def save_links(title, links):
-    with open(f"link_data/{title}", "w") as f:
-        for link in links:
-            f.write(link + "\n")
-        return True
+    main_html = BeautifulSoup(page.html(), "html.parser")
+    args = [
+        ["div", {"class": "reflist"}],
+        ["div", {"class": "mw-references-wrap"}],
+        ["span", {"id": "References"}],
+        ["span", {"id": "Sources"}],
+        ["span", {"id": "External_links"}],
+        ["div", {"class": "navbox"}],
+        ["table", {"id": "disambigbox"}],
+        ["table", {"id": "setindexbox"}],
+        ]
+    args_opt = 0
+    ref_html = main_html.find_all(name=args[args_opt][0], attrs=args[args_opt][1])
+    #print(ref_html)
+    while ref_html == [] and args_opt < len(args) -1:
+        args_opt += 1
+        ref_html = main_html.find_all(name=args[args_opt][0], attrs=args[args_opt][1])
 
-test_now = ['Blue Heelers', 'IMDb', 'Neighbours']
-test_now2 = {'Blue Heelers', 'IMDb', 'Neighbours'}
+    if ref_html == []:
+        print(f"*Wiki format error* {page.title}")
+        return page.links
+    else: 
+        ref_html = ref_html[0]
 
-save_links("Zoe Stark",test_now2)
+    main_str = str(main_html)
+    references_str = str(ref_html)
+    references_idex = main_str.find(references_str)
+    page_content = main_str[:references_idex]
 
-print(read_links("Zoe Stark"))
-    
+    content_soup = BeautifulSoup(page_content, "html.parser")
+    all_links = content_soup.find_all(
+        name="a", attrs={"class": None, "title": re.compile(".")}
+        )  # results set
+    print(len(get_titles(all_links)))
+    #return get_titles(all_links)
+
+
+print("how many times:")
+x = int(input())
+
+for i in range(x):
+    test1()
