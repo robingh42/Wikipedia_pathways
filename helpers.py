@@ -53,7 +53,6 @@ def get_links(page_name):
     else:
         try:
             page = wiki.WikipediaPage(page_name)  # Get the wikipedia page
-            
             links = parse_links(page)
             if links != []:
                 print("Page stored to a file:")
@@ -191,16 +190,15 @@ def parse_links(page):
     # as wikipedia pages are configured in many ways
 
     args = [
-        ["div", {"class": "reflist"}],
         ["div", {"class": "mw-references-wrap"}],
         ["span", {"id": "References"}],
         ["span", {"id": "Sources"}],
         ["span", {"id": "External_links"}],
         ["div", {"class": "navbox"}],
         ["table", {"id": "disambigbox"}],
-        ["table", {"id": "setindexbox"}]]
+        ["table", {"id": "setindexbox"}],
+        ["div", {"class": "reflist"}]]
     args_opt = 0
-
     # try to get the reference section using the first argument in the list
     ref_html = main_html.find_all(
         name=args[args_opt][0],
@@ -236,7 +234,7 @@ def parse_links(page):
         name="a", attrs={"class": None, "title": re.compile(".")})
     all_links += content_soup.find_all(
         name="a", attrs={"class": "mw-disambig", "title": re.compile(".")})
-    
+
     # Call get_titles to return only non-"Meta" Links
     return get_titles(all_links)
 
@@ -274,6 +272,8 @@ def get_titles(all_links):
         elif re.search("^Category:", link["title"]):
             meta_links.add(link["title"])
         elif re.search("^MediaWiki:", link["title"]):
+            meta_links.add(link["title"])
+        elif re.search("^About this Sound", link["title"]):
             meta_links.add(link["title"])
         elif re.search("^#", link["title"]):
             meta_links.add(link["title"])
@@ -348,16 +348,16 @@ def plot_all_paths(paths):
     """
     formated = ""
     print(f"We found {len(paths)} links!")
+    print(f"The shortest path(s) are {len(get_min_path(paths))} links long.")
+    print(f"The first short path is: {plot_path(get_min_path(paths))}")
+    print("\n-------------------------------\n")
     # If the list of pthats is empty, print out that result
     if paths == []:
         print("No paths found, try more steps between pages!")
 
     # Format each path and add it to a string to return
     # with newlines between paths
-    for path in paths:
-        if path == get_min_path(paths):
-            formated += "Shortest Path: "
-            print("Shortest Path: ", end="")
+    for path in paths:            
         formated += plot_path(path) + "\n"
         print(plot_path(path))
     # Return a string containing all the paths
@@ -368,7 +368,7 @@ def save_paths(paths, start, end, steps):
     """
     Takes a list of found paths and prints a formated version of the paths
 
-    Saves the file with a title showing the start page, end page, 
+    Saves the file with a title showing the start page, end page,
         and number of steps
 
     Args:
@@ -383,5 +383,12 @@ def save_paths(paths, start, end, steps):
     """
     with open(f"paths/{start},_{end},_{steps}", "w") as f:
         print(f"We found {len(paths)} paths from {start} to {end}!", file=f)
+        print(
+            f"The shortest path(s) are {len(get_min_path(paths))} links long.",
+            file=f)
+        print(
+            f"The first short path is: {plot_path(get_min_path(paths))}",
+            file=f)
+        print("\n-------------------------------\n", file=f)
         print("\n-------------------------------\n")
         print(plot_all_paths(paths), file=f)

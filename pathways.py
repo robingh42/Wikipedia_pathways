@@ -13,7 +13,7 @@ def get_pathway(page_name, end_pg, max_len, trail, paths):
         end_pg: (Wikipedia Page) The page the path should end at
         max_len: (Int) The number of maximum steps between the start page and
             the end page
-        trail: (List) The current path being searched 
+        trail: (List) The current path being searched
         Paths: (List) A set of all the paths between
             the starting page and the end page
 
@@ -33,10 +33,10 @@ def get_pathway(page_name, end_pg, max_len, trail, paths):
     elif max_len <= 1:
         print(f"Not a path: {trail}")
         return None
-    
+
     else:
-    # Check each of the links in the page
-    # Continue branching looking for the end
+        # Check each of the links in the page
+        # Continue branching looking for the end
         for link in h.get_links(page_name):
             if link not in trail:
                 if h.is_page(link):
@@ -65,7 +65,6 @@ def find_paths(start, end="Philosophy", max_links=3):
     end_pg = h.get_page(end)  # Find a wiki page from the end page name
 
     get_pathway(start_pg.title, end_pg, max_links, trail, paths)
-    print("\n-------------------------------\n")
     # Save all the paths and print them
     h.save_paths(paths, start_pg.title, end_pg.title, max_links)
     return paths
