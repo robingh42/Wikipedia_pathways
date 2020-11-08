@@ -54,7 +54,7 @@ def get_links(page_name):
         try:
             page = wiki.WikipediaPage(page_name)  # Get the wikipedia page
             links = parse_links(page)
-            if links != []:
+            if len(links) > 0:
                 print("Page stored to a file:")
                 save_links(page_name, links)
             return links
@@ -63,7 +63,7 @@ def get_links(page_name):
         except wiki.exceptions.DisambiguationError as de:
             return de.options
         except wiki.exceptions.PageError:
-            return None
+            return []
         pass
 
 

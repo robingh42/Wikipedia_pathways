@@ -25,8 +25,6 @@ It will give you the path if the warning ever pops up.
 
 If you pull the whole project you should already have all the nessisary directorys. Otherwise for this code to run properly you should have the directories `/link_data` and `/paths` in the same directory as `pathways.py`, `helpers.py`, and `Six_Degrees_of_Wiki.py`.
 
-
-
 ## Finding the Paths Between Pages
 
 This program is not a quick program to run, I reccomend that you don't go above 4 steps between pages. The code is constantly pulling from the internet or reading files, which can take a while as both of these are continualy branching to a set depth.
@@ -43,3 +41,9 @@ Make sure to give this function:
 - trail: give this a empty list that it can modify  
 - paths: a list to add paths to  
 Check `pathways.find_paths()` if you need an example of this
+
+## Testing
+
+There are not tests for the file `pathways.py` or `Six_Degrees_of_Wiki.py` as those are hard to test and I have found the best tests for those is to run searches and watch the output.
+
+For `helpers.py` unit test are povided to check conostensy of the output.
